@@ -5,6 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       versions: ${{steps.modified-versions.outputs.versions}}
+      versions_cpython_only: ${{steps.modified-versions.outputs.versions_cpython_only}}
     steps:
       - uses: actions/checkout@v5
       - run: git fetch origin "$GITHUB_BASE_REF"
@@ -20,10 +21,10 @@ jobs:
           echo "$versions" >> $GITHUB_ENV;
           echo "$EOF" >> $GITHUB_ENV;
           
-          versions_cpython_only=$(grep -Ee '^[[:digit:]]' <<<"$version")
+          versions_cpython_only=$(grep -Ee '^[[:digit:]]' <<<"$versions")
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64);
           echo "versions_cpython_only<<$EOF" >> $GITHUB_ENV;
-          echo $versions_cpython_only >> $GITHUB_ENV;
+          echo "$versions_cpython_only" >> $GITHUB_ENV;
           echo "$EOF" >> $GITHUB_ENV;
       - id: modified-versions
         run: |
