@@ -21,8 +21,12 @@ load test_helper
   export PYENV_REHASH_TIMEOUT=1
   mkdir -p "${PYENV_ROOT}/shims"
   touch "${PYENV_ROOT}/shims/.pyenv-shim"
-  run pyenv-rehash
-  assert_failure "pyenv: cannot rehash: ${PYENV_ROOT}/shims/.pyenv-shim exists"
+  #avoid failure due to a localized error message
+  LANG=C run pyenv-rehash
+  assert_failure <<!
+pyenv: cannot rehash: couldn't acquire lock ${PYENV_ROOT}/shims/.pyenv-shim for 1 seconds. Last error message:
+*/pyenv-rehash: line *: ${PYENV_ROOT}/shims/.pyenv-shim: cannot overwrite existing file
+!
 }
 
 @test "wait until lock acquisition" {
@@ -125,6 +129,26 @@ hash -r 2>/dev/null || true"
   create_alt_executable_in_version "3.4" "python"
   PYENV_SHELL=fish fish -Nc "source (pyenv-sh-rehash | psub)"
   assert_success
+  assert [ -x "${PYENV_ROOT}/shims/python" ]
+}
+
+@test "sh-rehash in pwsh" {
+  create_alt_executable_in_version "3.4" "python"
+  PYENV_SHELL=pwsh run pyenv-sh-rehash
+  assert_success "& (get-command pyenv -commandtype application) rehash"
+}
+
+@test "sh-rehash in pwsh (integration)" {
+  command -v pwsh >/dev/null || skip "-- pwsh not installed" 
+  assert [ ! -x "${PYENV_ROOT}/shims/python" ]
+  create_alt_executable_in_version "3.4" "python"
+  run pwsh -nop -c -<<'!'
+$ErrorActionPreference = "Stop"
+$PSNativeCommandUseErrorActionPreference = $true
+iex ((& pyenv init - pwsh) -join "`n")
+& pyenv rehash
+!
+  assert_success ""
   assert [ -x "${PYENV_ROOT}/shims/python" ]
 }
 
