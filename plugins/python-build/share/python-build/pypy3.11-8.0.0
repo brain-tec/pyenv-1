@@ -1,20 +1,19 @@
-VERSION='7.3.17'
-PYVER='3.10'
-MIN_OSX_VERSION='10.15'
+VERSION='8.0.0'
+PYVER='3.11'
 
 # https://www.pypy.org/checksums.html
-aarch64_hash=53b6e5907df869c49e4eae7aca09fba16d150741097efb245892c1477d2395f2
-linux32_hash=e534110e1047da37c1d586c392f74de3424f871d906a2083de6d41f2a8cc9164
-linux64_hash=fdcdb9b24f1a7726003586503fdeb264fd68fc37fbfcea022dcfe825a7fee18b
-osarm64_hash=a050e25e8d686853dd5afc363e55625165825dacfb55f8753d8225ebe417cfd2
-osx64_hash=6c2c5f2300d7564e711421b4968abd63243cb96f76e363975dd648ebf4a362ee
+aarch64_hash=37faf1a0b00131748910ad21844a9b1b3fedd630c89b01ec98cdb1b5466ffca5
+linux32_hash=14fcf398eacffdc98db2f3b10ae9e8c9628932dc89b0958d145b9fd9c7307301
+linux64_hash=66a3657e9ddf2d62ead44d3a44b9ea2f6e7dbf28d812554cae5c982a0585bfa5
+osarm64_hash=8fb2abc4f6e3fb5d40ad5bac5092bb6dfcc5131b4a5d2663073155084b9569e4
+osx64_hash=5f295181d622147271b51281d4968cb9d11b8c639af9aacf07fd710a496b8d10
 
 ### end of manual settings - following lines same for every download
 
 function err_no_binary {
     local archmsg="${1}"
     local ver="pypy${PYVER}-v${VERSION}-src"
-    local url="https://downloads.python.org/pypy/${ver}.tar.bz2"
+    local url="https://downloads.python.org/pypy/${ver}.tar.gz"
     { echo
       colorize 1 "ERROR"
       echo ": The binary distribution of PyPy is not available for ${archmsg}."
@@ -29,9 +28,9 @@ function pypy_pkg_data {
     local ARCH="${1}"
 
     # defaults
-    local cmd='install_package'  # use bz2
+    local cmd='install_package'
     local pkg="${ARCH}" # assume matches
-    local ext='tar.bz2'
+    local ext='tar.gz'  # v8.0.0+ now uses gz instead of bz2
     local hash='' # undefined
 
     # select the hash, fix pkg if not match ARCH
@@ -52,11 +51,11 @@ function pypy_pkg_data {
       pkg='macos_arm64'
       ;;
     'osx64' )
-      if require_osx_version "${MIN_OSX_VERSION}"; then
+      if require_osx_version "10.15"; then
         hash="${osx64_hash}"
         pkg='macos_x86_64'
       else
-        err_no_binary "${ARCH}, OS X < ${MIN_OSX_VERSION}"
+        err_no_binary "${ARCH}, OS X < 10.15"
       fi
       ;;
     * )

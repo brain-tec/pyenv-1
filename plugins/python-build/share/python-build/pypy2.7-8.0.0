@@ -1,20 +1,19 @@
-VERSION='7.3.17'
-PYVER='3.10'
-MIN_OSX_VERSION='10.15'
+VERSION='8.0.0'
+PYVER='2.7'
 
 # https://www.pypy.org/checksums.html
-aarch64_hash=53b6e5907df869c49e4eae7aca09fba16d150741097efb245892c1477d2395f2
-linux32_hash=e534110e1047da37c1d586c392f74de3424f871d906a2083de6d41f2a8cc9164
-linux64_hash=fdcdb9b24f1a7726003586503fdeb264fd68fc37fbfcea022dcfe825a7fee18b
-osarm64_hash=a050e25e8d686853dd5afc363e55625165825dacfb55f8753d8225ebe417cfd2
-osx64_hash=6c2c5f2300d7564e711421b4968abd63243cb96f76e363975dd648ebf4a362ee
+aarch64_hash=9ece5a6f575514ed38dde663e7f54e59de01c35b2df6d1ef83e25490d6b7c7b8
+linux32_hash=74d09cafbe0c85ae4c4d17d54099c6b31354235ffdd5277c01601434cc23e459
+linux64_hash=714e8c41608d0d66588c3ba48fb788dc33a1e8a865168d165585d1660beade0d
+osarm64_hash=167966aa205ca29b8d3ac6994e3d0d1741f3bf03e9e300737ed591304347c7b0
+osx64_hash=4e4f27669b27a7ff950058eb07e22687f5a04ba04220bb3df24411f07d5c0340
 
 ### end of manual settings - following lines same for every download
 
 function err_no_binary {
     local archmsg="${1}"
     local ver="pypy${PYVER}-v${VERSION}-src"
-    local url="https://downloads.python.org/pypy/${ver}.tar.bz2"
+    local url="https://downloads.python.org/pypy/${ver}.tar.gz"
     { echo
       colorize 1 "ERROR"
       echo ": The binary distribution of PyPy is not available for ${archmsg}."
@@ -29,9 +28,9 @@ function pypy_pkg_data {
     local ARCH="${1}"
 
     # defaults
-    local cmd='install_package'  # use bz2
+    local cmd='install_package'
     local pkg="${ARCH}" # assume matches
-    local ext='tar.bz2'
+    local ext='tar.gz'  # v8.0.0+ now uses gz instead of bz2
     local hash='' # undefined
 
     # select the hash, fix pkg if not match ARCH
@@ -52,11 +51,11 @@ function pypy_pkg_data {
       pkg='macos_arm64'
       ;;
     'osx64' )
-      if require_osx_version "${MIN_OSX_VERSION}"; then
+      if require_osx_version "10.15"; then
         hash="${osx64_hash}"
         pkg='macos_x86_64'
       else
-        err_no_binary "${ARCH}, OS X < ${MIN_OSX_VERSION}"
+        err_no_binary "${ARCH}, OS X < 10.15"
       fi
       ;;
     * )
@@ -75,4 +74,4 @@ function pypy_pkg_data {
 declare -a pd="$(pypy_pkg_data "$(pypy_architecture 2>/dev/null || true)")"
 
 # install
-${pd[0]} "${pd[1]}" "${pd[2]}" 'pypy' "verify_py${PYVER//./}" 'ensurepip'
+${pd[0]} "${pd[1]}" "${pd[2]}" 'pypy' "verify_py${PYVER//./}" 'ensurepip_lt21'
