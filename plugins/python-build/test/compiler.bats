@@ -143,12 +143,15 @@ DEF
   local flags="CPPFLAGS=-I${BATS_TEST_TMPDIR}/install/include LDFLAGS=-L${BATS_TEST_TMPDIR}/install/lib\ -Wl\,-rpath\,${BATS_TEST_TMPDIR}/install/lib LIBS=-L${BATS_TEST_TMPDIR}/install/lib\ -Wl\,-rpath\,${BATS_TEST_TMPDIR}/install/lib MACOSX_DEPLOYMENT_TARGET=10.10"
   assert_output <<OUT
 python-build: running: CC=clang $flags ./configure --prefix=$INSTALL_ROOT --enable-shared --libdir=${BATS_TEST_TMPDIR}/install/lib
+=> ./configure --prefix=$INSTALL_ROOT --enable-shared --libdir=${BATS_TEST_TMPDIR}/install/lib
 ./configure --prefix=$INSTALL_ROOT --enable-shared --libdir=${BATS_TEST_TMPDIR}/install/lib
 CC=clang
 CFLAGS=no
 python-build: running: $flags make -j 2
+=> make -j 2
 make -j 2
 python-build: running: $flags make install
+=> make install
 make install
 OUT
 
@@ -172,7 +175,9 @@ CFLAGS_EXTRA='-Wno-floating-conversion' build_package_micropython
 DEF
 
     assert_success
-    assert_output <<OUT
-CFLAGS_EXTRA=-DMICROPY_PY_SYS_PATH_DEFAULT='".frozen:${BATS_TEST_TMPDIR}/install/lib/micropython"' -Wno-floating-conversion
-OUT
+    assert_line "CFLAGS_EXTRA=-DMICROPY_PY_SYS_PATH_DEFAULT='\".frozen:${BATS_TEST_TMPDIR}/install/lib/micropython\"' -Wno-floating-conversion"
+    # each make is written to the log and printed to the console
+    [ "$(grep -c '^python-build: running: ' <<<"$output")" -eq 3 ]
+    assert_line "=> make -j 2"
+    assert_line "=> make install PREFIX=${INSTALL_ROOT}"
 }
